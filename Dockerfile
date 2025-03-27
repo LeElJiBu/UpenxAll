@@ -13,8 +13,9 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copia los archivos de Laravel al contenedor
 COPY . /var/www/html
 
-# Configura permisos
-RUN chown -R www-data:www-data /var/www/html \
+# Crear los directorios necesarios para Laravel
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Configura Apache
