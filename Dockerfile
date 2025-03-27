@@ -13,10 +13,14 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copia los archivos de Laravel al contenedor
 COPY . /var/www/html
 
-# Crear los directorios necesarios para Laravel (si no existen)
+# Instala las dependencias de Composer
+RUN composer install --no-dev --optimize-autoloader
+
+# Crea los directorios necesarios para Laravel (si no existen)
 RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
 
 # Configura Apache para permitir .htaccess y reescritura
 RUN echo "<Directory /var/www/html>" > /etc/apache2/conf-available/laravel.conf \
