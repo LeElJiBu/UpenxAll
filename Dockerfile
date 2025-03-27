@@ -16,25 +16,25 @@ COPY . /var/www/html
 # Instala las dependencias de Composer
 RUN composer install --no-dev --optimize-autoloader
 
-# Crea los directorios necesarios para Laravel (si no existen)
+# Cambiar la propiedad de los archivos a www-data para Apache
+RUN chown -R www-data:www-data /var/www/html
+
+# Crear los directorios necesarios para Laravel (si no existen)
 RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Cambiar DocumentRoot para que apunte a /public
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
-# Configura Apache para permitir .htaccess y reescritura
-RUN echo "<Directory /var/www/html>" > /etc/apache2/conf-available/laravel.conf \
+# Habilitar mod_rewrite y ajustar configuraciones de Apache
+RUN a2enmod rewrite
+RUN echo "<Directory /var/www/html/public>" > /etc/apache2/conf-available/laravel.conf \
     && echo "  AllowOverride All" >> /etc/apache2/conf-available/laravel.conf \
     && echo "</Directory>" >> /etc/apache2/conf-available/laravel.conf \
     && a2enconf laravel.conf
 
-# Cambiar DocumentRoot a la carpeta public de Laravel
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
-
-# Habilita mod_rewrite para permitir la reescritura de URLs
-RUN a2enmod rewrite
-
-# Expone el puerto 80
+# Exponer el puerto 80
 EXPOSE 80
 
 # Comando para iniciar Apache con Laravel
